@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#123e36">
   <meta name="description" content="Calcule seu IRA e sua Média Ponderada na UnB com a fórmula da Resolução CEG 0001/2020.">
   <title>CalculaIRA · UnB</title>
-  <link rel="stylesheet" href="styles.css?v=a9a322ca3a8e">
-  <script defer src="calculator.js?v=e69414ca2c07"></script>
+  <link rel="stylesheet" href="styles.css?v=845fcb653624">
+  <script defer src="calculator.js?v=f413f17e4628"></script>
   <script defer src="progress.js?v=5d5d2725763e"></script>
   <script defer src="pdf-import.js?v=e531f1ad6e72"></script>
-  <script defer src="app.js?v=67939f6f88b9"></script>
+  <script defer src="app.js?v=e70c27d13348"></script>
 </head>
 <body>
   <header class="topbar"><a class="brand" href="./"><img class="brand-logo" src="assets/calculaira-logo.png?v=6878d0a8d7a7" alt="CalculaIRA — calculadora IRA da UnB" width="2172" height="724"></a><a class="source" href="https://deg.unb.br/wp-content/uploads/resolucao_ceg_0001_2020.pdf" target="_blank" rel="noopener">Resolução oficial ↗</a></header>
@@ -45,6 +45,23 @@
         </div>
       </div>
     </section>
+    <div class="insights-grid">
+      <section class="goal-section panel" aria-labelledby="goal-title">
+        <span class="eyebrow">PLANEJE SEU OBJETIVO</span><h2 id="goal-title">Meta de IRA</h2>
+        <label class="goal-input" for="ira-target">Qual IRA você quer atingir?<input id="ira-target" type="number" min="0" max="5" step="0.01" value="4.50" inputmode="decimal"></label>
+        <div class="goal-answer" aria-live="polite"><span id="goal-label">Média necessária nas menções esperadas</span><strong id="goal-required">—</strong><p id="goal-message"></p></div>
+        <button id="goal-apply" class="button primary" disabled>Aplicar exemplo de menções</button>
+        <p id="goal-example" class="hint"></p>
+        <p class="progress-note">A média usa a escala das menções (SS = 5, MS = 4…), ponderada por créditos e semestre. A meta considera todas as disciplinas em andamento.</p>
+      </section>
+      <section class="evolution-section panel" aria-labelledby="evolution-title">
+        <span class="eyebrow">ACOMPANHE SEU HISTÓRICO</span><h2 id="evolution-title">Evolução por semestre</h2>
+        <p class="hint">IRA acumulado ao final de cada semestre com menções registradas. A linha tracejada mostra o cenário simulado.</p>
+        <div class="chart-legend"><span><i></i>Histórico</span><span><i class="forecast-legend"></i>Simulação</span></div>
+        <div id="evolution-chart" class="evolution-chart"></div><p id="evolution-empty" class="hint">Adicione disciplinas com menção para ver a evolução do seu IRA.</p>
+        <details class="evolution-details"><summary>Ver valores por semestre</summary><div id="evolution-values"></div></details>
+      </section>
+    </div>
     <div class="workspace">
       <section class="courses panel" aria-labelledby="courses-title">
         <div class="section-head"><div><span class="eyebrow">01 / HISTÓRICO</span><h2 id="courses-title">Suas disciplinas</h2></div><button id="example" class="button secondary">Ver exemplo</button></div>

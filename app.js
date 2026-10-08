@@ -4,6 +4,7 @@ const PROGRESS_KEY = 'unb-ira-progress-v1';
 const $ = id => document.getElementById(id);
 let rows = [];
 const forecasts = new WeakMap();
+let goalExample = null;
 let storageAvailable = true;
 try {
   const saved = localStorage.getItem(KEY);
@@ -78,6 +79,7 @@ function updateResults() {
     $('storage-status').textContent = 'Preencha os campos para salvar as alterações';
   }
   renderForecasts();
+  updateGoal();
 }
 function renderForecasts() {
   $('forecast-list').replaceChildren();
@@ -126,6 +128,86 @@ function updateProjection() {
     $('forecast-change').textContent = 'Confira créditos e semestre no histórico para calcular a projeção.';
     for (const mention of ['mm', 'ms', 'ss']) { $(`scenario-${mention}-value`).textContent = '—'; $(`scenario-${mention}`).disabled = true; $(`scenario-${mention}`).setAttribute('aria-pressed', 'false'); }
   }
+  renderEvolution();
+}
+function updateGoal() {
+  goalExample = null; $('goal-apply').disabled = true; $('goal-example').textContent = '';
+  try {
+    const target = $('ira-target').value === '' ? NaN : Number($('ira-target').value);
+    const result = IRACalculator.goal(rows, target);
+    $('goal-label').textContent = 'Média necessária nas menções esperadas';
+    const requiredDisplay = result.required === null ? null : Math.max(0, Math.ceil((result.required - 1e-12) * 1000) / 1000);
+    $('goal-required').textContent = result.status === 'achievable' ? format(requiredDisplay) : '—';
+    if (result.status === 'no_ongoing') {
+      $('goal-message').textContent = result.current !== null && result.current >= target ? 'Você já atingiu essa meta no histórico atual. Adicione disciplinas em andamento para planejar o próximo resultado.' : 'Adicione disciplinas em andamento para calcular como atingir sua meta.';
+    } else if (result.status === 'impossible') {
+      $('goal-label').textContent = 'Meta fora do alcance neste cenário';
+      $('goal-message').textContent = `Mesmo com tudo SS, o IRA chegaria a ${format(result.maximum)}. Experimente uma meta menor ou adicione disciplinas futuras.`;
+    } else {
+      $('goal-message').textContent = result.required === 0 ? 'Essa meta se mantém mesmo com SR nas disciplinas em andamento.' : `Para chegar a ${format(target)}, a média ponderada das menções em andamento precisa ser pelo menos ${format(requiredDisplay)} de 5.`;
+      goalExample = result.example; $('goal-apply').disabled = false;
+      const counts = new Map(); result.example.filter(Boolean).forEach(mention => counts.set(mention, (counts.get(mention) || 0) + 1));
+      $('goal-example').textContent = `Exemplo: ${[...counts].map(([mention, count]) => `${count} ${mention}`).join(' + ')} → IRA ${format(result.exampleIRA)}. É um cenário possível; outras combinações também podem atingir a meta.`;
+    }
+  } catch (error) { $('goal-required').textContent = '—'; $('goal-message').textContent = error.message; }
+}
+$('ira-target').addEventListener('input', updateGoal);
+$('goal-apply').addEventListener('click', () => {
+  if (!goalExample) return;
+  rows.forEach((row, index) => { if (row.mention === 'CURSANDO') forecasts.set(row, goalExample[index]); });
+  renderForecasts(); $('projection-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+function renderEvolution() {
+  const chart = $('evolution-chart'); chart.replaceChildren(); $('evolution-values').replaceChildren();
+  try {
+    const actual = IRACalculator.evolution(rows);
+    const ongoing = rows.filter(row => row.mention === 'CURSANDO');
+    const firstForecast = ongoing.length ? Math.min(...ongoing.map(row => row.semester)) : Infinity;
+    const simulatedRows = rows.map(row => row.mention === 'CURSANDO' ? { ...row, mention: forecasts.get(row) || 'MS' } : row);
+    const future = ongoing.length ? IRACalculator.evolution(simulatedRows).filter(point => point.semester >= firstForecast) : [];
+    const points = [...actual, ...future];
+    $('evolution-empty').hidden = points.length > 0;
+    $('evolution-empty').textContent = 'Adicione disciplinas com menção para ver a evolução do seu IRA.';
+    if (!points.length) return;
+    const semesters = [...new Set(points.map(point => point.semester))].sort((a, b) => a - b);
+    const width = Math.max(440, semesters.length * 48 + 64), height = 240;
+    const first = semesters[0], last = semesters.at(-1);
+    const x = semester => last === first ? width / 2 : 40 + (semester - first) / (last - first) * (width - 64);
+    const y = ira => 190 - ira / 5 * 160;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Evolução do IRA acumulado por semestre. Os valores também estão disponíveis abaixo do gráfico.');
+    svg.style.minWidth = semesters.length <= 6 ? '300px' : `${width}px`;
+    const node = (tag, attributes, text) => {
+      const element = document.createElementNS(svg.namespaceURI, tag);
+      for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
+      if (text !== undefined) element.textContent = text; svg.append(element); return element;
+    };
+    for (let value = 0; value <= 5; value++) {
+      node('line', { x1: 40, x2: width - 24, y1: y(value), y2: y(value), stroke: '#e1e7dd' });
+      node('text', { x: 22, y: y(value) + 4, 'text-anchor': 'middle', class: 'chart-text' }, value);
+    }
+    for (const semester of semesters) node('text', { x: x(semester), y: 215, 'text-anchor': 'middle', class: 'chart-text' }, `${semester}º`);
+    const draw = (series, forecast, markerFrom = 0) => {
+      if (series.length > 1) node('polyline', { points: series.map(point => `${x(point.semester)},${y(point.ira)}`).join(' '), fill: 'none', stroke: forecast ? '#80a34d' : '#16483b', 'stroke-width': 3, 'stroke-dasharray': forecast ? '6 5' : 'none' });
+      series.forEach((point, index) => {
+        if (index < markerFrom) return;
+        const circle = node('circle', { cx: x(point.semester), cy: y(point.ira), r: 5, fill: forecast ? '#a8d969' : '#16483b' });
+        const title = document.createElementNS(svg.namespaceURI, 'title'); title.textContent = `${point.semester}º semestre · ${forecast ? 'simulado' : 'histórico'}: ${format(point.ira)}`; circle.append(title);
+      });
+    };
+    draw(actual, false);
+    if (future.length) {
+      const previous = actual.filter(point => point.semester < firstForecast).at(-1);
+      draw(previous ? [previous, ...future] : future, true, previous ? 1 : 0);
+    }
+    chart.append(svg);
+    for (const semester of semesters) {
+      const historical = actual.find(point => point.semester === semester), forecast = future.find(point => point.semester === semester);
+      const line = document.createElement('p'); line.textContent = `${semester}º semestre · histórico: ${format(historical?.ira ?? null)}${forecast ? ` · simulação: ${format(forecast.ira)}` : ''}`;
+      $('evolution-values').append(line);
+    }
+  } catch (_) { $('evolution-empty').hidden = false; $('evolution-empty').textContent = 'Confira créditos e semestre no histórico para ver a evolução.'; }
 }
 for (const mention of ['MM', 'MS', 'SS']) {
   $(`scenario-${mention.toLowerCase()}`).addEventListener('click', () => {

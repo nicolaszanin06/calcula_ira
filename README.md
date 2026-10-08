@@ -34,6 +34,12 @@ O painel **IRA projetado** considera o histórico com menção e simula uma men�
 
 O cálculo mantém a ponderação por créditos e semestre, limitado a 6. Disciplinas de módulo livre entram na projeção do IRA. CC, TR e TJ continuam fora. As escolhas de simulação ficam apenas na sessão aberta, sem alterar menções reais, armazenamento do histórico, backups ou totais de integralização. Ao recarregar, o cenário volta a MS.
 
+## Meta de IRA e evolução por semestre
+
+**Meta de IRA:** usa a carga ponderada das disciplinas em andamento para resolver a média de menções necessária na escala de 0 a 5. Considera os créditos e o peso do semestre, limitado a 6. Se mesmo tudo SS não alcançar o objetivo, informa o máximo possível. A média necessária é exibida arredondada para cima em três casas. Um exemplo de menções inteiras permite aplicar um cenário que atinge a meta, sem prometer ser a única combinação ou a combinação mínima. O exemplo parte da menção inteira imediatamente abaixo da média requerida e melhora disciplinas de maior peso até alcançar a meta.
+
+**Evolução:** mostra o IRA acumulado ao final dos semestres que têm menções numéricas registradas. CC, TR, TJ e disciplinas em andamento ficam fora da linha histórica; SR conta normalmente. A simulação aparece como linha tracejada a partir do primeiro semestre em andamento, acompanhando as escolhas do painel de projeção. Valores por semestre ficam disponíveis em uma lista acessível abaixo do gráfico. Os semestres são contados desde o ingresso, conforme o histórico importado ou os valores cadastrados.
+
 ## Fórmulas do IRA e da MP
 
 - IRA = Σ(E × créditos × min(semestre, 6)) / Σ(créditos × min(semestre, 6)).
@@ -63,5 +69,7 @@ Para o leitor do histórico: `node pdf-import.test.js`. As amostras dos testes s
 Para integralização: `node progress.test.js`. Os testes verificam os percentuais, a projeção até 100%, as horas restantes e a validação de entradas. O teste do importador também cobre limites por categoria e evita contar novamente tentativas repetidas ou disciplinas já aprovadas.
 
 Para IRA projetado: `node projection.test.js`.
+
+Para metas e evolução: `node insights.test.js`.
 
 Os testes cobrem a equivalência das menções, ponderação por créditos e semestre, limite de 6, MP sem módulo livre, SR, exclusões, histórico vazio e entradas inválidas.

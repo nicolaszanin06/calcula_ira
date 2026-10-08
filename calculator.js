@@ -48,7 +48,41 @@
     return { current, projected, ongoingCount, selectedCount,
       delta: projected && current.ira !== null ? projected.ira - current.ira : null };
   }
-  const api = { mentions, validate, calculate, project };
+  function goal(rows, target) {
+    if (typeof target !== 'number' || !Number.isFinite(target) || target < 0 || target > 5) throw new Error('Informe uma meta de IRA entre 0 e 5.');
+    const valid = validate(rows), current = calculate(valid);
+    let numerator = 0, completedWeight = 0, ongoingWeight = 0;
+    const ongoing = [];
+    valid.forEach((row, index) => {
+      const weight = row.credits * Math.min(row.semester, 6);
+      if (Object.hasOwn(mentions, row.mention)) { numerator += mentions[row.mention] * weight; completedWeight += weight; }
+      else if (row.mention === 'CURSANDO') { ongoingWeight += weight; ongoing.push({ index, weight }); }
+    });
+    if (!ongoingWeight) return { status: 'no_ongoing', current: current.ira, target, required: null, maximum: current.ira, example: null };
+    const maximum = (numerator + 5 * ongoingWeight) / (completedWeight + ongoingWeight);
+    const raw = (target * (completedWeight + ongoingWeight) - numerator) / ongoingWeight;
+    if (raw > 5 + 1e-12) return { status: 'impossible', current: current.ira, target, required: raw, maximum, example: null };
+    const required = Math.max(0, Math.min(5, raw));
+    const base = Math.floor(required), grades = ['SR', 'II', 'MI', 'MM', 'MS', 'SS'];
+    const predictions = valid.map(row => row.mention === 'CURSANDO' ? grades[base] : null);
+    let added = base * ongoingWeight;
+    for (const item of ongoing.sort((a, b) => b.weight - a.weight || a.index - b.index)) {
+      if (numerator + added >= target * (completedWeight + ongoingWeight) - 1e-10) break;
+      predictions[item.index] = grades[base + 1]; added += item.weight;
+    }
+    return { status: 'achievable', current: current.ira, target, required, maximum,
+      example: predictions, exampleIRA: project(valid, predictions).projected.ira };
+  }
+  function evolution(rows) {
+    const valid = validate(rows).filter(row => Object.hasOwn(mentions, row.mention));
+    const semesters = [...new Set(valid.map(row => row.semester))].sort((a, b) => a - b);
+    return semesters.map(semester => {
+      const semesterRows = valid.filter(row => row.semester === semester);
+      const accumulated = calculate(valid.filter(row => row.semester <= semester));
+      return { semester, ira: accumulated.ira, credits: semesterRows.reduce((sum, row) => sum + row.credits, 0), count: semesterRows.length };
+    });
+  }
+  const api = { mentions, validate, calculate, project, goal, evolution };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.IRACalculator = api;
 })(globalThis);
