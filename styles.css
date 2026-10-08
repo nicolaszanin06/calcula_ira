@@ -46,3 +46,33 @@ dialog > .section-head, dialog > .hint, .pdf-comparison, .review-actions, #pdf-e
   .pdf-comparison { font-size:12px; padding:10px; }
   .review-actions { margin-top:12px; }
 }
+.progress-section { padding:26px; margin-bottom:24px; }
+.progress-tag { font-size:11px; color:var(--green); background:#edf6df; border-radius:20px; padding:8px 12px; white-space:nowrap; }
+.progress-section > .hint { margin-bottom:20px; }
+.progress-layout { display:grid; grid-template-columns:1.1fr 1fr; gap:30px; align-items:start; }
+.progress-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.progress-fields label { font-size:11px; font-weight:600; line-height:1.5; }
+.progress-fields label span { display:block; font-size:10px; font-weight:400; color:var(--muted); min-height:30px; }
+.progress-fields input { margin-top:8px; font-size:16px; }
+.progress-results { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.progress-results > div { padding:14px; background:#f5f7f0; border-radius:12px; }
+.progress-results .progress-future { background:#edf6df; }
+.progress-results span { display:block; font-size:11px; color:var(--muted); }
+.progress-results strong { display:block; font-family:'Manrope',system-ui,sans-serif; font-size:32px; font-weight:600; margin:7px 0; letter-spacing:-1px; }
+.progress-results small { display:block; color:var(--muted); font-size:10px; }
+.completion-meter { height:8px; border-radius:10px; background:#edf0e9; display:flex; overflow:hidden; margin-top:22px; }
+.completion-meter > div { width:0; transition:width .25s; }
+#progress-current-fill { background:var(--green); }
+#progress-added-fill { background:#a8d969; }
+.progress-section .progress-detail { margin:12px 0 0; }
+.progress-note { font-size:11px; line-height:1.7; color:var(--muted); margin:8px 0 0; }
+@media(max-width:850px) { .progress-layout { grid-template-columns:1fr; gap:18px; } }
+@media(max-width:560px) {
+  .progress-section { padding:18px; }
+  .progress-section h2 { font-size:19px; }
+  .progress-tag { font-size:9px; padding:6px 8px; }
+  .progress-fields { grid-template-columns:1fr; gap:14px; }
+  .progress-fields label span { min-height:0; }
+  .progress-fields input { margin-top:5px; }
+  .progress-results strong { font-size:30px; }
+}

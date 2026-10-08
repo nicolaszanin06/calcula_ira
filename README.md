@@ -18,7 +18,17 @@ O PDF é processado localmente no navegador. Somente os campos das disciplinas s
 
 Limites: PDF de até 10 MB e 50 páginas, com texto selecionável. Não há OCR para arquivos escaneados. O leitor foi validado no formato de histórico SIGAA fornecido; outros layouts, perfil inicial diferente de zero e períodos especiais exigem revisão. O peso do semestre segue a sequência de períodos desde o ingresso; campos podem ser corrigidos na prévia em situações específicas.
 
-## Fórmulas
+## Integralização do curso
+
+O painel mostra o percentual atual (`CH integralizada / CH total × 100`) e a projeção de aprovação em todas as disciplinas em andamento (`(CH integralizada + CH aproveitável em andamento) / CH total × 100`), limitada a 100%.
+
+Ao importar um PDF, os totais são lidos da tabela **Carga Horária Integralizada/Pendente**. A projeção identifica disciplinas em andamento e limita as horas adicionais ao que falta em cada categoria (obrigatórias, optativas e complementares). Tentativas repetidas do mesmo código e disciplinas já aprovadas não acrescentam horas novamente. A classificação usa os marcadores da tabela: `#`, `*` e `&` como optativas/eletivas; `%` e `§` como complementares; sem esses marcadores como obrigatórias.
+
+A projeção é uma estimativa: equivalências e regras específicas de atividades podem exigir ajustar as horas aproveitáveis. Os três campos são editáveis. Os totais representam a fotografia do histórico importado; mudar menções para simular o IRA não modifica a integralização. Para atualizar a situação oficial, importe um histórico novo ou altere os totais. Quem já importou um PDF antes desta atualização precisa importá-lo novamente para preencher os novos campos.
+
+As cargas horárias são salvas no navegador e incluídas na exportação JSON (formato versão 2). Backups antigos (versão 1) continuam aceitos e deixam o painel em branco para preenchimento.
+
+## Fórmulas do IRA e da MP
 
 - IRA = Σ(E × créditos × min(semestre, 6)) / Σ(créditos × min(semestre, 6)).
 - MP = Σ(E × créditos) / Σ(créditos), apenas para disciplinas do módulo integrante.
@@ -28,7 +38,7 @@ Esta implementação considera apenas as seis menções numéricas da resoluçã
 
 ## Publicar no GitHub Pages
 
-1. Crie um repositório no GitHub e envie `index.html`, `styles.css`, `calculator.js`, `app.js`, `pdf-import.js`, `.nojekyll` e a pasta `vendor` para a raiz da branch `main`.
+1. Crie um repositório no GitHub e envie `index.html`, `styles.css`, `calculator.js`, `progress.js`, `app.js`, `pdf-import.js`, `.nojekyll` e a pasta `vendor` para a raiz da branch `main`.
 2. No repositório, abra **Settings → Pages**.
 3. Em **Build and deployment**, escolha **Deploy from a branch**.
 4. Selecione **main** e **/ (root)**; clique em **Save**.
@@ -41,5 +51,7 @@ Não exige backend, chaves de API ou etapa de build. Os caminhos dos arquivos s�
 Com Node.js instalado: `node calculator.test.js`.
 
 Para o leitor do histórico: `node pdf-import.test.js`. As amostras dos testes são sintéticas e não contêm dados pessoais.
+
+Para integralização: `node progress.test.js`. Os testes verificam os percentuais, a projeção até 100%, as horas restantes e a validação de entradas. O teste do importador também cobre limites por categoria e evita contar novamente tentativas repetidas ou disciplinas já aprovadas.
 
 Os testes cobrem a equivalência das menções, ponderação por créditos e semestre, limite de 6, MP sem módulo livre, SR, exclusões, histórico vazio e entradas inválidas.

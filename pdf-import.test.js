@@ -43,4 +43,22 @@ assert.throws(() => parse([[item('PDF sem texto reconhecível', 0, 0)]]), /hist�
 assert.throws(() => parse(Array(51).fill([])), /50 páginas/);
 const shuffled = parse([page([{ mention: 'SS' }], true).reverse()]);
 assert.equal(shuffled.rows.length, 1);
+function curriculum(required, completed) {
+  const result = [item('Carga Horária Integralizada/Pendente', 33, 280)];
+  for (const [label, values, y] of [['Exigido', required, 250], ['Integralizado', completed, 230]]) {
+    result.push(item(label, 33, y));
+    [...values, values.reduce((sum, value) => sum + value, 0)].forEach((value, index) => result.push(item(`${value} h`, 140 + index * 100, y)));
+  }
+  result.push(item('Carga Horária Extensionista', 33, 200));
+  return result;
+}
+const cappedPage = page([
+  { mention: 'SS', code: 'ABC0001' }, { status: 'MATR', code: 'ABC0001' },
+  { status: 'MATR', code: 'ABC0002' }, { status: 'MATR', code: 'ABC0002' },
+  { status: 'MATR', code: 'ABC0003', marker: '#' },
+  { status: 'MATR', code: 'ABC0004', marker: '%' }
+], true);
+cappedPage.push(...curriculum([120, 30, 0], [60, 30, 0]));
+assert.deepEqual(parse([cappedPage]).progress, { totalHours: 150, completedHours: 90, ongoingHours: 60 });
+assert.equal(parsed.progress, null);
 console.log('Importador aprovado: colunas, múltiplas páginas, menções, tentativas repetidas, eletivas, andamento, trancamentos, ENADE, pendências e erros de leitura.');

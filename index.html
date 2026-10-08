@@ -8,6 +8,7 @@
   <title>Calculadora IRA · UnB</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="calculator.js"></script>
+  <script defer src="progress.js"></script>
   <script defer src="pdf-import.js"></script>
   <script defer src="app.js"></script>
 </head>
@@ -15,6 +16,21 @@
   <header class="topbar"><a class="brand" href="./"><span class="brand-icon">∑</span> IRA<span class="brand-sub">/ UnB</span></a><a class="source" href="https://deg.unb.br/wp-content/uploads/resolucao_ceg_0001_2020.pdf" target="_blank" rel="noopener">Resolução oficial ↗</a></header>
   <main>
     <section class="intro"><span class="eyebrow">SEU HISTÓRICO, SEM COMPLICAÇÃO</span><h1>Entenda seu rendimento.<br><span>Planeje seu próximo semestre.</span></h1><p>Adicione as disciplinas do seu histórico e veja seu IRA em tempo real. Para simular resultados, experimente outras menções.</p></section>
+    <section class="progress-section panel" aria-labelledby="progress-title">
+      <div class="section-head"><div><span class="eyebrow">SEU CAMINHO ATÉ A FORMATURA</span><h2 id="progress-title">Integralização do curso</h2></div><span class="progress-tag">Atual + projeção</span></div>
+      <p class="hint">Importe seu histórico PDF para preencher automaticamente ou informe as horas do SIGAA. A projeção considera aprovação em todas as disciplinas em andamento que contam para o currículo.</p>
+      <div class="progress-layout">
+        <div class="progress-fields">
+          <label for="progress-total">CH total do currículo <span>horas exigidas</span><input id="progress-total" type="number" min="1" max="100000" step="1" placeholder="Ex.: 3525" inputmode="numeric"></label>
+          <label for="progress-completed">CH já integralizada <span>horas aproveitadas</span><input id="progress-completed" type="number" min="0" max="100000" step="1" placeholder="Ex.: 1080" inputmode="numeric"></label>
+          <label for="progress-ongoing">CH em andamento <span>horas que contarão se aprovado</span><input id="progress-ongoing" type="number" min="0" max="100000" step="1" placeholder="Ex.: 330" inputmode="numeric"></label>
+        </div>
+        <div class="progress-results" aria-live="polite"><div><span>Integralizado hoje</span><strong id="progress-current">—</strong><small id="progress-current-hours">Preencha os totais</small></div><div class="progress-future"><span>Passando em tudo</span><strong id="progress-projected">—</strong><small id="progress-projected-hours">Projeção do semestre</small></div></div>
+      </div>
+      <div class="completion-meter" aria-hidden="true"><div id="progress-current-fill"></div><div id="progress-added-fill"></div></div>
+      <p id="progress-detail" class="hint progress-detail">Os totais serão salvos neste navegador junto do seu histórico.</p>
+      <p class="progress-note">Use apenas horas aproveitáveis no currículo. A importação limita a projeção ao que falta em cada categoria. Estes totais representam o histórico importado; simular menções no IRA não altera a integralização.</p>
+    </section>
     <div class="workspace">
       <section class="courses panel" aria-labelledby="courses-title">
         <div class="section-head"><div><span class="eyebrow">01 / HISTÓRICO</span><h2 id="courses-title">Suas disciplinas</h2></div><button id="example" class="button secondary">Ver exemplo</button></div>
@@ -42,6 +58,7 @@
     <p id="pdf-summary" class="hint"></p>
     <p class="hint">Carga horária ÷ 15 = créditos. O semestre é contado desde o ingresso, incluindo períodos sem disciplinas. “#” indica módulo livre. Você pode corrigir os campos abaixo.</p>
     <div id="pdf-comparison" class="pdf-comparison" aria-live="polite"></div>
+    <p id="pdf-progress-summary" class="hint"></p>
     <ul id="pdf-warnings" class="pdf-warnings"></ul>
     <div class="review-scroll"><table><thead><tr><th>Disciplina</th><th>Créditos</th><th>Semestre</th><th>Menção</th><th>Módulo</th></tr></thead><tbody id="pdf-rows"></tbody></table></div>
     <p id="pdf-error" class="message" role="status"></p>

@@ -23,7 +23,7 @@
       const match = new RegExp(`${key}:\\s*([0-5][.,]\\d+)`).exec(text);
       if (match) official[key.toLowerCase()] = Number(match[1].replace(',', '.'));
     }
-    const warnings = [], rows = [];
+    const warnings = [], rows = [], completionCourses = [];
     let ignored = 0, candidates = 0;
     const initialProfile = /Perfil Inicial:\s*(\d+)/.exec(text)?.[1];
     if (initialProfile && Number(initialProfile) > 0) warnings.push('O histórico tem perfil inicial diferente de zero. Confira o semestre de cada disciplina.');
@@ -73,10 +73,33 @@
         const markers = sameLine.filter(item => item.x > anchor.x + anchor.width && item.x < code.x).map(item => item.text.trim());
         if (markers.some(marker => !['#', '*', '&', '@'].includes(marker))) warnings.push(`${codeLabel}: confira o módulo, pois o símbolo da disciplina não foi reconhecido.`);
         rows.push({ name, credits: hours / 15, semester, mention, module: markers.includes('#') ? 'livre' : 'integrante' });
+        completionCourses.push({ code: code.text, hours, mention,
+          category: markers.includes('%') || markers.includes('§') ? 'complementar' : markers.some(marker => ['#', '*', '&'].includes(marker)) ? 'optativa' : 'obrigatoria' });
       }
     }
     if (!rows.length) throw new Error('Nenhuma disciplina foi reconhecida. Use o PDF original do histórico do SIGAA, com texto selecionável.');
-    return { rows, initial, official, ignored, candidates, warnings };
+    return { rows, initial, official, ignored, candidates, warnings, progress: parseProgress(text, completionCourses) };
+  }
+  function parseProgress(text, courses) {
+    const section = text.split('Carga Horaria Integralizada/Pendente')[1]?.split('Carga Horaria Extensionista')[0];
+    if (!section) return null;
+    const hoursPattern = '(\\d[\\d.]*)\\s*h';
+    const readRow = label => {
+      const match = new RegExp(`${label}\\s+${Array(4).fill(hoursPattern).join('\\s+')}`).exec(section);
+      return match ? match.slice(1).map(value => Number(value.replaceAll('.', ''))) : null;
+    };
+    const required = readRow('Exigido'), completed = readRow('Integralizado');
+    if (!required || !completed || required[3] <= 0 || required[3] !== required[0] + required[1] + required[2] || completed[3] !== completed[0] + completed[1] + completed[2] || required.some((hours, index) => completed[index] > hours)) return null;
+    const approved = new Set(courses.filter(course => ['SS', 'MS', 'MM', 'CC'].includes(course.mention)).map(course => course.code));
+    const pending = new Set(), inProgress = [0, 0, 0];
+    for (const course of courses) {
+      if (course.mention !== 'CURSANDO' || approved.has(course.code) || pending.has(course.code)) continue;
+      pending.add(course.code);
+      const category = ['obrigatoria', 'optativa', 'complementar'].indexOf(course.category);
+      inProgress[category] += course.hours;
+    }
+    const ongoingHours = inProgress.reduce((sum, hours, index) => sum + Math.min(hours, required[index] - completed[index]), 0);
+    return { totalHours: required[3], completedHours: completed[3], ongoingHours };
   }
   let libraryPromise;
   function loadScript(src) {
