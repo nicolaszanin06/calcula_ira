@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const { calculate, validate } = require('./calculator.js');
+const row = (mention, credits = 4, semester = 1, module = 'integrante') => ({ name: '', mention, credits, semester, module });
+const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} != ${expected}`);
+assert.deepEqual(calculate([]), { ira: null, mp: null, count: 0, credits: 0 });
+for (const [mention, value] of Object.entries({ SS: 5, MS: 4, MM: 3, MI: 2, II: 1, SR: 0 })) near(calculate([row(mention)]).ira, value);
+near(calculate([row('SS', 4, 1), row('MM', 4, 2)]).ira, 11 / 3);
+near(calculate([row('SS', 4, 6), row('SR', 4, 20)]).ira, 2.5);
+near(calculate([row('SS', 6), row('MM', 2)]).ira, 4.5);
+const free = calculate([row('MS'), row('SS', 4, 1, 'livre')]);
+near(free.ira, 4.5); near(free.mp, 4);
+assert.equal(calculate([row('SS', 4, 1, 'livre')]).mp, null);
+const exclusions = calculate([row('SS'), ...['CC', 'TR', 'TJ', 'CURSANDO'].map(mention => row(mention))]);
+assert.deepEqual(exclusions, { ira: 5, mp: 5, count: 1, credits: 4 });
+near(calculate([row('SR'), row('SS')]).ira, 2.5);
+for (const invalid of [row('BAD'), row('SS', 0), row('SS', 4, 0), row('SS', 1.5), row('SS', 4, NaN), row('SS', 4, 1, 'BAD')]) assert.throws(() => validate([invalid]));
+assert.throws(() => validate(null));
+console.log('Todos os testes passaram: menções, créditos, semestre limitado a 6, módulo livre, exclusões, reprovação e validação.');

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123e36">
+  <meta name="description" content="Calcule seu IRA e sua Média Ponderada na UnB com a fórmula da Resolução CEG 0001/2020.">
+  <title>Calculadora IRA · UnB</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="calculator.js"></script>
+  <script defer src="pdf-import.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-icon">∑</span> IRA<span class="brand-sub">/ UnB</span></a><a class="source" href="https://deg.unb.br/wp-content/uploads/resolucao_ceg_0001_2020.pdf" target="_blank" rel="noopener">Resolução oficial ↗</a></header>
+  <main>
+    <section class="intro"><span class="eyebrow">SEU HISTÓRICO, SEM COMPLICAÇÃO</span><h1>Entenda seu rendimento.<br><span>Planeje seu próximo semestre.</span></h1><p>Adicione as disciplinas do seu histórico e veja seu IRA em tempo real. Para simular resultados, experimente outras menções.</p></section>
+    <div class="workspace">
+      <section class="courses panel" aria-labelledby="courses-title">
+        <div class="section-head"><div><span class="eyebrow">01 / HISTÓRICO</span><h2 id="courses-title">Suas disciplinas</h2></div><button id="example" class="button secondary">Ver exemplo</button></div>
+        <p class="hint">Use o semestre desde seu ingresso: 1, 2, 3… Cadastre cada tentativa de uma disciplina separadamente.</p>
+        <div class="pdf-upload"><div><strong>Tem seu histórico do SIGAA?</strong><p>Importe o PDF e confira as disciplinas antes de salvar. O arquivo é lido apenas no seu navegador.</p></div><button id="import-pdf" class="button secondary">Importar histórico PDF</button></div>
+        <input type="file" id="pdf-file" accept=".pdf,application/pdf" hidden>
+        <div class="table-wrap"><table><thead><tr><th scope="col">Disciplina <span>(opcional)</span></th><th scope="col">Créditos</th><th scope="col">Semestre</th><th scope="col">Menção</th><th scope="col">Módulo</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div id="empty" class="empty"><span class="empty-icon">＋</span><h3>Seu histórico começa aqui</h3><p>Adicione sua primeira disciplina<br>ou veja um exemplo preenchido.</p></div>
+        <button id="add" class="button primary">＋ Adicionar disciplina</button>
+        <div class="tools"><span id="storage-status">Salvo apenas neste navegador</span><div><button id="export" class="text-button">Exportar</button><button id="import" class="text-button">Importar</button><button id="clear" class="text-button danger">Limpar</button></div></div>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+        <p id="message" role="status" class="message"></p>
+      </section>
+      <aside class="results" aria-label="Resultados">
+        <section class="result-card" aria-live="polite"><span class="eyebrow">ÍNDICE DE RENDIMENTO ACADÊMICO</span><div class="score"><span id="ira">—</span><span>/ 5</span></div><div class="meter"><div id="meter-fill"></div></div><p id="result-description">Adicione disciplinas com menção para calcular.</p><div class="result-stats"><div><span>Disciplinas no IRA</span><strong id="count">0</strong></div><div><span>Créditos no IRA</span><strong id="credits">0</strong></div></div></section>
+        <section class="mp-card panel"><div><span class="eyebrow">MÉDIA PONDERADA</span><strong id="mp">—</strong></div><p>Considera obrigatórias e optativas do curso, sem o peso do semestre. Módulo livre fica fora da MP.</p></section>
+        <p class="local-note">Seus dados ficam neste navegador.<br>Exporte uma cópia para guardar seu histórico.</p>
+      </aside>
+    </div>
+    <section class="explanation panel"><span class="eyebrow">02 / POR TRÁS DO NÚMERO</span><h2>Como o cálculo funciona</h2><div class="explanation-grid"><div><div class="formula">IRA = ∑ (menção × créditos × peso do semestre)<br><span>÷ ∑ (créditos × peso do semestre)</span></div><p>O peso do semestre é o menor valor entre o semestre cursado e 6. Do 6º semestre em diante, o peso é sempre 6.</p></div><div><div class="mention-key"><span>SS <b>5</b></span><span>MS <b>4</b></span><span>MM <b>3</b></span><span>MI <b>2</b></span><span>II <b>1</b></span><span>SR <b>0</b></span></div><p>CC, TR, TJ e disciplinas em andamento não entram nesta calculadora. A fórmula da resolução de 2020 não aplica um fator de penalização por trancamentos.</p></div></div></section>
+    <footer>Ferramenta independente, baseada na <a href="https://deg.unb.br/wp-content/uploads/resolucao_ceg_0001_2020.pdf" target="_blank" rel="noopener">Resolução CEG nº 0001/2020</a>. Confira o resultado com seu histórico oficial.</footer>
+  </main>
+  <dialog id="pdf-review" aria-labelledby="pdf-review-title">
+    <div class="section-head"><div><span class="eyebrow">IMPORTAÇÃO DO SIGAA</span><h2 id="pdf-review-title">Confira seu histórico</h2></div><button id="pdf-close" class="remove" aria-label="Fechar prévia">×</button></div>
+    <p id="pdf-summary" class="hint"></p>
+    <p class="hint">Carga horária ÷ 15 = créditos. O semestre é contado desde o ingresso, incluindo períodos sem disciplinas. “#” indica módulo livre. Você pode corrigir os campos abaixo.</p>
+    <div id="pdf-comparison" class="pdf-comparison" aria-live="polite"></div>
+    <ul id="pdf-warnings" class="pdf-warnings"></ul>
+    <div class="review-scroll"><table><thead><tr><th>Disciplina</th><th>Créditos</th><th>Semestre</th><th>Menção</th><th>Módulo</th></tr></thead><tbody id="pdf-rows"></tbody></table></div>
+    <p id="pdf-error" class="message" role="status"></p>
+    <div class="review-actions"><button id="pdf-cancel" class="button secondary">Cancelar</button><button id="pdf-confirm" class="button primary">Salvar histórico importado</button></div>
+    <p class="hint">Salvar substitui as disciplinas atuais. Cancele e exporte uma cópia antes, se quiser guardá-las. Nome, matrícula e demais dados pessoais não são salvos.</p>
+  </dialog>
+</body>
+</html>
