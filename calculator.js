@@ -30,7 +30,25 @@
     }
     return { ira: denominator ? numerator / denominator : null, mp: mpDenominator ? mpNumerator / mpDenominator : null, count: valid.length, credits };
   }
-  const api = { mentions, validate, calculate };
+  function project(rows, predictions = []) {
+    const valid = validate(rows);
+    if (!Array.isArray(predictions) || predictions.length > valid.length) throw new Error('As menções esperadas devem corresponder às disciplinas do histórico.');
+    const current = calculate(valid);
+    let ongoingCount = 0, selectedCount = 0;
+    const simulated = valid.map((row, index) => {
+      if (row.mention !== 'CURSANDO') return row;
+      ongoingCount++;
+      const expected = predictions[index];
+      if (expected == null || expected === '') return row;
+      if (!Object.hasOwn(mentions, expected)) throw new Error('Escolha uma menção de SS a SR para simular.');
+      selectedCount++;
+      return { ...row, mention: expected };
+    });
+    const projected = ongoingCount && selectedCount === ongoingCount ? calculate(simulated) : null;
+    return { current, projected, ongoingCount, selectedCount,
+      delta: projected && current.ira !== null ? projected.ira - current.ira : null };
+  }
+  const api = { mentions, validate, calculate, project };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.IRACalculator = api;
 })(globalThis);

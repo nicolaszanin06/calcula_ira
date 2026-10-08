@@ -28,6 +28,12 @@ A projeção é uma estimativa: equivalências e regras específicas de atividad
 
 As cargas horárias são salvas no navegador e incluídas na exportação JSON (formato versão 2). Backups antigos (versão 1) continuam aceitos e deixam o painel em branco para preenchimento.
 
+## IRA projetado
+
+O painel **IRA projetado** considera o histórico com menção e simula uma menção de SS a SR para cada disciplina marcada **Em andamento**. A simulação começa com MS e permite comparar e aplicar cenários de tudo MM, MS ou SS. O IRA atual e o projetado aparecem lado a lado, junto da variação prevista.
+
+O cálculo mantém a ponderação por créditos e semestre, limitado a 6. Disciplinas de módulo livre entram na projeção do IRA. CC, TR e TJ continuam fora. As escolhas de simulação ficam apenas na sessão aberta, sem alterar menções reais, armazenamento do histórico, backups ou totais de integralização. Ao recarregar, o cenário volta a MS.
+
 ## Fórmulas do IRA e da MP
 
 - IRA = Σ(E × créditos × min(semestre, 6)) / Σ(créditos × min(semestre, 6)).
@@ -53,5 +59,7 @@ Com Node.js instalado: `node calculator.test.js`.
 Para o leitor do histórico: `node pdf-import.test.js`. As amostras dos testes são sintéticas e não contêm dados pessoais.
 
 Para integralização: `node progress.test.js`. Os testes verificam os percentuais, a projeção até 100%, as horas restantes e a validação de entradas. O teste do importador também cobre limites por categoria e evita contar novamente tentativas repetidas ou disciplinas já aprovadas.
+
+Para IRA projetado: `node projection.test.js`.
 
 Os testes cobrem a equivalência das menções, ponderação por créditos e semestre, limite de 6, MP sem módulo livre, SR, exclusões, histórico vazio e entradas inválidas.

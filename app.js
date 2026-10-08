@@ -3,6 +3,7 @@ const KEY = 'unb-ira-history-v1';
 const PROGRESS_KEY = 'unb-ira-progress-v1';
 const $ = id => document.getElementById(id);
 let rows = [];
+const forecasts = new WeakMap();
 let storageAvailable = true;
 try {
   const saved = localStorage.getItem(KEY);
@@ -76,6 +77,61 @@ function updateResults() {
     $('result-description').textContent = 'Preencha créditos e semestre com inteiros de 1 a 100 para calcular.';
     $('storage-status').textContent = 'Preencha os campos para salvar as alterações';
   }
+  renderForecasts();
+}
+function renderForecasts() {
+  $('forecast-list').replaceChildren();
+  const ongoing = rows.filter(row => row.mention === 'CURSANDO');
+  $('forecast-count').textContent = ongoing.length ? `${ongoing.length} ${ongoing.length === 1 ? 'disciplina em andamento' : 'disciplinas em andamento'}${ongoing.length > 4 ? ' · role a lista para ver todas' : ''}` : '';
+  $('forecast-empty').hidden = ongoing.length > 0;
+  ongoing.forEach((row, index) => {
+    if (!forecasts.has(row)) forecasts.set(row, 'MS');
+    const label = document.createElement('label'); label.className = 'forecast-row';
+    const text = document.createElement('span');
+    const name = document.createElement('strong'); name.textContent = row.name || `Disciplina em andamento ${index + 1}`;
+    const meta = document.createElement('small'); meta.textContent = `${row.credits ?? '—'} créditos · semestre ${row.semester ?? '—'}`;
+    text.append(name, meta);
+    const select = document.createElement('select'); select.setAttribute('aria-label', `Menção esperada: ${row.name || `disciplina ${index + 1}`}`);
+    for (const [mention, value] of Object.entries(IRACalculator.mentions)) {
+      const option = document.createElement('option'); option.value = mention; option.textContent = `${mention} · ${value}`; select.append(option);
+    }
+    select.value = forecasts.get(row);
+    select.addEventListener('change', () => { forecasts.set(row, select.value); updateProjection(); });
+    label.append(text, select); $('forecast-list').append(label);
+  });
+  updateProjection();
+}
+function updateProjection() {
+  try {
+    const predictions = rows.map(row => row.mention === 'CURSANDO' ? forecasts.get(row) : null);
+    const result = IRACalculator.project(rows, predictions);
+    $('forecast-current').textContent = format(result.current.ira);
+    $('forecast-result').textContent = format(result.projected?.ira ?? null);
+    if (!result.ongoingCount) $('forecast-change').textContent = 'Adicione disciplinas em andamento para ver a projeção.';
+    else if (!result.projected) $('forecast-change').textContent = 'Escolha uma menção esperada para cada disciplina.';
+    else if (result.delta === null) $('forecast-change').textContent = `Primeiro IRA estimado com ${result.ongoingCount} disciplinas em andamento.`;
+    else {
+      const delta = Math.abs(result.delta) < 1e-12 ? 0 : result.delta;
+      $('forecast-change').textContent = `${delta >= 0 ? '+' : '−'}${format(Math.abs(delta))} em relação ao IRA atual · ${result.ongoingCount} disciplinas simuladas.`;
+    }
+    for (const mention of ['MM', 'MS', 'SS']) {
+      const id = `scenario-${mention.toLowerCase()}`;
+      const scenario = IRACalculator.project(rows, rows.map(row => row.mention === 'CURSANDO' ? mention : null));
+      $(`${id}-value`).textContent = format(scenario.projected?.ira ?? null);
+      $(id).disabled = !result.ongoingCount;
+      $(id).setAttribute('aria-pressed', String(result.ongoingCount > 0 && rows.filter(row => row.mention === 'CURSANDO').every(row => forecasts.get(row) === mention)));
+    }
+  } catch (_) {
+    $('forecast-current').textContent = '—'; $('forecast-result').textContent = '—';
+    $('forecast-change').textContent = 'Confira créditos e semestre no histórico para calcular a projeção.';
+    for (const mention of ['mm', 'ms', 'ss']) { $(`scenario-${mention}-value`).textContent = '—'; $(`scenario-${mention}`).disabled = true; $(`scenario-${mention}`).setAttribute('aria-pressed', 'false'); }
+  }
+}
+for (const mention of ['MM', 'MS', 'SS']) {
+  $(`scenario-${mention.toLowerCase()}`).addEventListener('click', () => {
+    for (const row of rows) if (row.mention === 'CURSANDO') forecasts.set(row, mention);
+    renderForecasts();
+  });
 }
 function inputCell(row, index, property, type, options, onUpdate = updateResults, prefix = '') {
   const cell = document.createElement('td');

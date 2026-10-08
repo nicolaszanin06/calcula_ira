@@ -31,6 +31,20 @@
       <p id="progress-detail" class="hint progress-detail">Os totais serão salvos neste navegador junto do seu histórico.</p>
       <p class="progress-note">Use apenas horas aproveitáveis no currículo. A importação limita a projeção ao que falta em cada categoria. Estes totais representam o histórico importado; simular menções no IRA não altera a integralização.</p>
     </section>
+    <section class="projection-section panel" aria-labelledby="projection-title">
+      <div class="section-head"><div><span class="eyebrow">SIMULE SEU SEMESTRE</span><h2 id="projection-title">IRA projetado</h2></div><span class="progress-tag">Menções esperadas</span></div>
+      <p class="hint">Escolha a menção que espera tirar em cada disciplina em andamento. A simulação começa com MS e mantém as menções do seu histórico.</p>
+      <div class="projection-layout">
+        <div><p id="forecast-count" class="progress-note"></p><div id="forecast-list" class="forecast-list" role="group" aria-label="Menções esperadas das disciplinas em andamento"></div><p id="forecast-empty" class="hint">Importe um histórico com disciplinas em andamento ou adicione uma disciplina com essa indicação.</p></div>
+        <div class="projection-summary">
+          <div class="projection-scores" aria-live="polite"><div><span>IRA atual</span><strong id="forecast-current">—</strong></div><div class="forecast-highlight"><span>IRA projetado</span><strong id="forecast-result">—</strong></div></div>
+          <p id="forecast-change" class="hint" aria-live="polite"></p>
+          <span class="eyebrow scenario-label">COMPARE E APLIQUE UM CENÁRIO</span>
+          <div class="scenario-buttons"><button class="scenario-button" id="scenario-mm" aria-pressed="false">Tudo MM<strong id="scenario-mm-value">—</strong></button><button class="scenario-button" id="scenario-ms" aria-pressed="false">Tudo MS<strong id="scenario-ms-value">—</strong></button><button class="scenario-button" id="scenario-ss" aria-pressed="false">Tudo SS<strong id="scenario-ss-value">—</strong></button></div>
+          <p class="progress-note">A projeção usa créditos e o peso do semestre, limitado a 6. As escolhas ficam apenas nesta sessão e não alteram o histórico salvo nem a integralização.</p>
+        </div>
+      </div>
+    </section>
     <div class="workspace">
       <section class="courses panel" aria-labelledby="courses-title">
         <div class="section-head"><div><span class="eyebrow">01 / HISTÓRICO</span><h2 id="courses-title">Suas disciplinas</h2></div><button id="example" class="button secondary">Ver exemplo</button></div>
