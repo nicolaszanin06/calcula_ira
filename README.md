@@ -44,6 +44,8 @@ Esta implementação considera apenas as seis menções numéricas da resoluçã
 
 ## Publicar no GitHub Pages
 
+Antes de enviar uma atualização, execute `node version-assets.cjs`. O comando atualiza os endereços do CSS, dos scripts e da logo com uma versão baseada no conteúdo, evitando misturar HTML novo com arquivos antigos do cache. Não modifica os dados salvos no navegador.
+
 1. Crie um repositório no GitHub e envie `index.html`, `styles.css`, `calculator.js`, `progress.js`, `app.js`, `pdf-import.js`, `.nojekyll` e as pastas `vendor` e `assets` para a raiz da branch `main`.
 2. No repositório, abra **Settings → Pages**.
 3. Em **Build and deployment**, escolha **Deploy from a branch**.
