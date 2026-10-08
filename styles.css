@@ -76,3 +76,12 @@ dialog > .section-head, dialog > .hint, .pdf-comparison, .review-actions, #pdf-e
   .progress-fields input { margin-top:5px; }
   .progress-results strong { font-size:30px; }
 }
+/* Display the supplied logo without its transparent outer margins. */
+.topbar { gap:20px; }
+.brand { display:block; position:relative; flex:0 1 300px; width:300px; height:auto; aspect-ratio:2040 / 267; min-width:0; overflow:hidden; }
+.brand-logo { position:absolute; width:106.4706%; height:auto; max-width:none; left:-3.7255%; top:-82.7715%; }
+.source { flex-shrink:0; }
+@media(max-width:560px) {
+  .topbar { gap:16px; }
+  .brand { flex-basis:210px; width:210px; }
+}
